@@ -1,0 +1,17 @@
+<?php if($paginator->count() > 1) :?>
+<?php $pages = $paginator->getPages();?>
+<div class="pagination pagination-right">
+	<ul>
+		<?php if(isset($pages->previous)) : ?>
+		<li><a href="<?=Gq_Common::buildUrl($base_uri, $params, array('p'=>$pages->previous))?>">«</a></li>
+		<?php endif;?>
+
+		<?php foreach($pages->pagesInRange as $page) :?>
+		<li><a <?php if($page == $pages->current) echo 'class="active"';?> href="<?=Gq_Common::buildUrl($base_uri, $params, array('p'=>$page))?>"><?=$page?></a></li>
+		<?php endforeach;?>
+		<?php if(isset($pages->next)) : ?>
+		<li><a href="<?=Gq_Common::buildUrl($base_uri, $params, array('p'=>$pages->next))?>">»</a></li>
+		<?php endif;?>
+	</ul>
+</div>
+<?php endif;?>

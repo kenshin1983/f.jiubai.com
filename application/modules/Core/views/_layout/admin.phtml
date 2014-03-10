@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+<meta charset="utf-8">
+<title>后台系统</title>
+<link href="<?=STATIC_URL?>/css/bootstrap.min.css" rel="stylesheet">
+<link href="<?=STATIC_URL?>/css/bootstrap-responsive.min.css" rel="stylesheet">
+<link href="<?=STATIC_URL?>/css/admin.css" rel="stylesheet"> 
+<script src="<?=STATIC_URL?>/js/jquery.min.js"></script>
+</head>
+
+<body>
+	<?php $this->menu = Yaf_Registry::get('menu');?>
+	<?=$this->render('_top.phtml');?>
+	<div class="container">
+		<div class="row">
+			<?=$this->render('_sidebar.phtml');?>
+			<div class="span9"><?php echo $this->content; ?></div>
+		</div>
+	</div>
+</body>
+
+</html>
+<script src="<?=STATIC_URL?>/js/bootstrap.min.js"></script>
+<script src="<?=STATIC_URL?>/js/dialog.js"></script>

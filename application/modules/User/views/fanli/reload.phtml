@@ -1,0 +1,22 @@
+<form class="form-horizontal" id="reloadFrom">
+  <div class="control-group">
+    <label class="control-label">时间</label>
+    <div class="controls">
+      <input type="text" id="date" name="date" value="<?=date('Ymd')?>">
+    </div>
+  </div>
+</form>
+<div class="well">
+	<p>最近抓取的10个数据</p>
+<?php foreach($this->records as $item) :?>
+	<a class="btn btn-link" href="javascript:;" data-placement="top" title="" data-original-title="<?=$item['time']?><br />成功抓取<?=$item['num']?>条数据"><?=$item['date']?></a>
+<?php endforeach;?>
+</div>
+<script type="text/javascript">
+$(function($){
+	$('.well a').tooltip({html:true});
+	$('.well a').click(function(){
+		$('#date').val($(this).text());
+	});
+})
+</script>

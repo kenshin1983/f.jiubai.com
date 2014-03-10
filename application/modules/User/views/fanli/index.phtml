@@ -1,0 +1,157 @@
+<?php 
+	$userAssoc = Services_User_User::getUserAssoc();
+	$statusAssoc = array('0'=>'待返', '1' => '已返', '2' => '删除');
+	$typeAssoc = array('taobao'=>'淘宝', 'paipai' => '拍拍');
+?>
+
+<section>
+	<h3>
+		返利列表
+		<a class="btn btn-small btn-primary" id="reloadBtn">重新获取返利</a>
+	</h3>
+	<form class="form-inline">
+		<input type="text" class="input-mini" placeholder="ID" name="fanli_id" value="<?=isset($params['fanli_id']) ? $params['fanli_id'] : ''?>">
+		<input type="text" class="input-mini" placeholder="用户ID" name="user_id" value="<?=isset($params['user_id']) ? $params['user_id'] : ''?>">
+		<input type="text" class="input" placeholder="订单号" name="order_num" value="<?=isset($params['order_num']) ? $params['order_num'] : ''?>">
+		<select class="input-small" name="status">
+			<option value="-1">全部</option>
+			<?php foreach($statusAssoc as $k => $v) :?>
+			<option value="<?=$k?>" <?php if(isset($params['status']) && $params['status'] == $k):?>selected<?php endif;?>><?=$v?></option>		
+			<?php endforeach;?>
+		</select>
+		<button type="submit" class="btn">搜索</button>
+	</form>
+	<?php if($fanliList) : ?>
+	<table class="table table-hover" id="fanliTable">
+		<thead
+			<tr>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'fanli_id'))?>">ID<?php if(isset($order['fanli_id'])) : ?><i class="icon-chevron-<?=$order['fanli_id'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th class="span3"><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'goods_title'))?>">商品名称<?php if(isset($order['goods_title'])) : ?><i class="icon-chevron-<?=$order['goods_title'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order_num, 'order_num'))?>">订单号(类型)<?php if(isset($order['order_num'])) : ?><i class="icon-chevron-<?=$order['order_num'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'user_id'))?>">用户<?php if(isset($order['user_id'])) : ?><i class="icon-chevron-<?=$order['user_id'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>				
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'commission'))?>">返利<?php if(isset($order['commission'])) : ?><i class="icon-chevron-<?=$order['commission'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'pay_time'))?>">支付时间<?php if(isset($order['pay_time'])) : ?><i class="icon-chevron-<?=$order['pay_time'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th class="span1"><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'status'))?>">状态<?php if(isset($order['status'])) : ?><i class="icon-chevron-<?=$order['status'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th>操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			<?php foreach($fanliList as $item) : ?>
+			<tr id="row_<?=$item['fanli_id']?>">
+				<td><?=$item['fanli_id']?></td>
+				<td><?=$item['goods_title']?></td>
+				<td><?=$item['order_num']?>(<?=$typeAssoc[$item['type']]?>)</td>
+				<td><?=$item['user_id'] > 0 ? $userAssoc[$item['user_id']]['user_name'] : '无'?></td>
+				<td>￥<?=$item['commission']?></td>
+				<td><?=$item['pay_time']?></td>
+				<td><?=$statusAssoc[$item['status']]?></td>
+				<td>
+					<?php if($item['status'] == 0) :?>
+					<a class="btn btn-mini btn-primary fanliBtn" rel="<?=$item['fanli_id']?>">转已返</a>
+					<?php endif;?>
+					<?php if($item['status'] != 2) :?>
+					<a class="btn btn-mini btn-danger delBtn" rel="<?=$item['fanli_id']?>">删除</a>
+					<?php endif;?>
+				</td>
+			</tr>
+			<?php endforeach;?>
+		</tbody>
+	</table>
+	<?=$this->render(APP_ADMIN_LAYOUT_DIR . DS . '_admin_pagination_control.phtml');?>
+	<?php else:?>
+	<div class="well">抱歉，没有找到数据！</div>
+	<?php endif;?>
+</section>
+<!--reload框-->
+<div id="reloadModal"></div>
+<div id="delModal"></div>
+<script type="text/javascript">
+//reload
+$('#reloadBtn').click(function(){
+	$('#reloadModal').dialog({
+		title: '重新获取返利',
+		url : '/User/Fanli/reload',
+		buttons:[
+			{
+				text : "提交",
+				class : "btn-primary",
+				click : function(){
+					reloadFanli();
+				}
+			},
+			{
+				text : "取消",
+				close : true
+			},
+		]
+	});
+	
+});
+
+function reloadFanli(){
+	$.ajax({
+		url : '/User/Fanli/reload',
+		type : 'post',
+		dataType : 'json',
+		data : $('#reloadFrom').serializeArray(),
+		success : function(resp){
+			if($.type(resp) !== 'object') return;
+			if(resp.error == 0){
+				window.location.href = location.href;
+			}else{
+				alert(resp.message);
+			}
+		}
+	});
+}
+
+$(".fanliBtn").click(function(){
+	var rel = $(this).attr('rel');
+	$.getJSON('/User/Fanli/status', {id : rel, t : 1}, function(resp){
+		if($.type(resp) !== 'object') return;
+		if(resp.error == 0){
+			window.location.href = location.href;
+		}else{
+			alert(resp.message);
+		}
+	});
+});
+
+//删除
+$('a.delBtn').click(function(){
+	var id = $(this).attr('rel');
+	$('#delModal').html('<p>你确定要删除该返利记录？</p>').dialog({
+		title: '删除确认',
+		buttons:[
+			{
+				text : "是",
+				class : "btn-danger",
+				click : function(){
+					delSave(id);
+				}
+			},
+			{
+				text : "否",
+				close : true
+			},
+		]
+	});
+});
+
+function delSave(id){
+	if(id > 0){
+		$.getJSON('/User/Fanli/status', {id : id, t : '2'}, function(resp){
+			if($.type(resp) !== 'object') return;
+			if(resp.error == 0){
+				$('#delModal').dialog('hide');
+				$('#row_' + id).remove();
+				if($('tbody tr').size() == 0){
+					window.location.href = location.href;
+				}
+			}else{
+				alert(resp.message);
+			}
+		});
+	}
+}
+</script>

@@ -1,0 +1,174 @@
+<section>
+	<h3>
+		用户列表
+		<a class="btn btn-small btn-primary" id="addBtn">添加用户</a>
+	</h3>
+	<form class="form-inline">
+		<input type="text" class="input-mini" placeholder="ID" name="user_id" value="<?=isset($params['user_id']) ? $params['user_id'] : ''?>">
+		<input type="text" class="input-small" placeholder="用户名(模糊)" name="user_name" value="<?=isset($params['user_name']) ? $params['user_name'] : ''?>">
+		<input type="text" class="input-small" placeholder="真实姓名" name="real_name" value="<?=isset($params['real_name']) ? $params['real_name'] : ''?>">
+		<input type="text" class="input-small" placeholder="支付宝" name="alipay" value="<?=isset($params['alipay']) ? $params['alipay'] : ''?>">
+		<select class="input-small" name="status">
+			<option value="-1" <?php if(isset($params['status']) && $params['status'] == -1):?>selected<?php endif;?>>不限</option>
+			<option value="1" <?php if(isset($params['status']) && $params['status'] == 1):?>selected<?php endif;?>>开启</option>
+			<option value="0" <?php if(isset($params['status']) && $params['status'] == 0):?>selected<?php endif;?>>关闭</option>
+		</select>
+		<button type="submit" class="btn">搜索</button>
+	</form>
+	<?php if($userList) : ?>
+	<table class="table table-hover" id="userTable">
+		<thead>
+			<tr>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'user_id'))?>">ID<?php if(isset($order['user_id'])) : ?><i class="icon-chevron-<?=$order['user_id'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'user_name'))?>">用户<?php if(isset($order['user_name'])) : ?><i class="icon-chevron-<?=$order['user_name'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'alipay'))?>">支付宝<?php if(isset($order['alipay'])) : ?><i class="icon-chevron-<?=$order['alipay'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'wait_money'))?>">待返<?php if(isset($order['wait_money'])) : ?><i class="icon-chevron-<?=$order['wait_money'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'has_money'))?>">已返<?php if(isset($order['has_money'])) : ?><i class="icon-chevron-<?=$order['has_money'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'reg_time'))?>">注册时间<?php if(isset($order['reg_time'])) : ?><i class="icon-chevron-<?=$order['reg_time'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th><a href="<?=Gq_Common::buildUrl($base_uri, $params, Gq_Common::toggleOrder($order, 'status'))?>">状态<?php if(isset($order['status'])) : ?><i class="icon-chevron-<?=$order['status'] == 'ASC' ? 'up' : 'down'?>"></i><?php endif;?></a></th>
+				<th>操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			<?php foreach($userList as $item) : ?>
+			<tr id="row_<?=$item['user_id']?>">
+				<td><?=$item['user_id']?></td>
+				<td><?=$item['user_name']?>(<?=$item['real_name']?>)</td>
+				<td><?=$item['alipay']?></td>
+				<td><?=$item['wait_money']?>元</td>
+				<td><?=$item['has_money']?>元</td>
+				<td><?=$item['reg_time']?></td>
+				<td><i class="icon-<?=$item['status'] ? 'ok' : 'remove'?>"></i></td>
+				<td>
+					<a class="btn btn-mini btn-primary editBtn" rel="<?=$item['user_id']?>">编辑</a>
+					<a class="btn btn-mini btn-danger delBtn" rel="<?=$item['user_id']?>">删除</a>
+					<a class="btn btn-mini" rel="<?=$item['user_id']?>" href="/User/Fanli/index?user_id=<?=$item['user_id']?>">返利</a>
+				</td>
+			</tr>
+			<?php endforeach;?>
+		</tbody>
+	</table>
+	<?=$this->render(APP_ADMIN_LAYOUT_DIR . DS . '_admin_pagination_control.phtml');?>
+	<?php else:?>
+	<div class="well">抱歉，没有找到数据！</div>
+	<?php endif;?>
+</section>
+<div id="delModal"></div>
+<div id="editModal"></div>
+<div id="addModal"></div>
+<script type="text/javascript">
+//删除
+$('a.delBtn').click(function(){
+	var id = $(this).attr('rel');
+	$('#delModal').html('<p>你确定要删除该用户？</p>').dialog({
+		title: '删除确认',
+		buttons:[
+			{
+				text : "是",
+				class : "btn-danger",
+				click : function(){
+					delSave(id);
+				}
+			},
+			{
+				text : "否",
+				close : true
+			},
+		]
+	});
+});
+
+function delSave(id){
+	if(id > 0){
+		$.getJSON('/User/Index/remove', {id : id}, function(resp){
+			if($.type(resp) !== 'object') return;
+			if(resp.error == 0){
+				$('#delModal').dialog('hide');
+				$('#row_' + id).remove();
+				if($('tbody tr').size() == 0){
+					window.location.href = location.href;
+				}
+			}else{
+				alert(resp.message);
+			}
+		});
+	}
+}
+//编辑
+$('a.editBtn').click(function(){
+	var id = $(this).attr('rel');
+	$('#editModal').dialog({
+		title: '修改',
+		url : '/User/Index/edit?id=' + id,
+		buttons:[
+			{
+				text : "保存",
+				class : "btn-primary",
+				click : function(){
+					editSave(id);
+				}
+			},
+			{
+				text : "取消",
+				close : true
+			},
+		]
+	});
+});
+
+function editSave(id){
+	$.ajax({
+		url : '/User/Index/edit?id=' + id,
+		type : 'post',
+		dataType : 'json',
+		data : $('#editFrom').serializeArray(),
+		success : function(resp){
+			if($.type(resp) !== 'object') return;
+			if(resp.error == 0){
+				window.location.href = location.href;
+			}else{
+				alert(resp.message);
+			}
+		}
+	});
+}
+
+//添加
+$('#addBtn').click(function(){
+	$('#addModal').dialog({
+		title: '添加',
+		url : '/User/Index/add',
+		buttons:[
+			{
+				text : "保存",
+				class : "btn-primary",
+				click : function(){
+					addSave();
+				}
+			},
+			{
+				text : "取消",
+				close : true
+			},
+		]
+	});
+	
+});
+
+function addSave(){
+	$.ajax({
+		url : '/User/Index/add',
+		type : 'post',
+		dataType : 'json',
+		data : $('#addFrom').serializeArray(),
+		success : function(resp){
+			if($.type(resp) !== 'object') return;
+			if(resp.error == 0){
+				window.location.href = location.href;
+			}else{
+				alert(resp.message);
+			}
+		}
+	});
+}
+</script>

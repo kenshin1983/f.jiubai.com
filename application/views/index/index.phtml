@@ -1,0 +1,53 @@
+<form class="form-search" method="post">
+  <div class="input-append" style="margin:0 auto">
+    <input type="text" name="url" class="search-query k_search">
+    <button type="submit" class="btn k_search_btn">查返利</button>
+  </div>
+</form>
+<?php if(isset($goods)) :?>
+<div class="hero-unit">
+	<p><img src="<?= $goods['item']['pic_url']?>" class="img-polaroid" /></p>
+	<h3><?= $goods['item']['name']?></h3>
+	<p class="text-error"><strong>￥<?= $goods['item']['price']?>元</strong></p>
+	<p class="text-error">
+		<strong>可返：</strong>
+		<strong id="fanli">￥0.00元</strong>
+		(<em id="fanli_rate">0%</em>)
+	</p>
+	<p><span class="label label-info">注意</span>
+		商品价格和返利价格不一定准的，返利比例是准的，正确的返利价格可通过实际的商品价格乘上返利比例计算出来</p>
+	<p>
+		<a class="btn btn-primary btn-large" id="url" target="_blank">去购买</a>
+		<a class="btn btn-primary btn-large" id="shop_url" href="" target="_blank">去店铺</a>
+	</p>
+</div>
+<?php endif;?>
+
+<?php if(isset($num_id)) :?>
+<?php $user = isset($_COOKIE['user']) ? $_COOKIE['user'] : null;?>
+<script type="text/javascript">
+TOP.api('rest', 'get',{
+	method:'taobao.taobaoke.widget.items.convert',
+	num_iids:'<?= $num_id?>',
+	outer_code:'<?= $user ? $user['user_id'] : ''; ?>',
+	fields:'num_iid,click_url,commission_rate,commission,nick,shop_click_url'
+},function(resp){
+	if(resp.error_response){
+		alert('taobao.taobaoke.widget.items.convert接口获取商信息品失败!'+resp.error_response.msg);
+		return false;
+	}
+	if(resp.total_results == 0){
+		return false;
+	}
+	var respItem=resp.taobaoke_items.taobaoke_item;
+	for(var i=0;i<respItem.length;i++){
+		document.getElementById('fanli_rate').innerHTML = Number(respItem[i].commission_rate)/100+"%";
+		document.getElementById('fanli').innerHTML = "￥"+Number(respItem[i].commission)+"元";
+		document.getElementById('url').href = respItem[i].click_url;
+		document.getElementById('shop_url').href = respItem[i].shop_click_url;
+	}
+});
+
+
+</script>
+<?php endif;?>

@@ -1,0 +1,45 @@
+<form class="form-horizontal" action="/User/Index/edit?id=<?=$user['user_id']?>" method="post" id="editFrom">
+  <div class="control-group">
+    <label class="control-label">用户名</label>
+    <div class="controls">
+      <span class="input uneditable-input"><?=$user['user_name']?></span>
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label">密码</label>
+    <div class="controls">
+      <input type="text" placeholder="不修改密码则不需要输入" name="password" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="real_name">真实姓名</label>
+    <div class="controls">
+      <input type="text" id="real_name" name="real_name" value="<?=$user['real_name']?>">
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="alipay">支付宝账户</label>
+    <div class="controls">
+      <input type="text" id="alipay" name="alipay" value="<?=$user['alipay']?>">
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="alipay">联系电话</label>
+    <div class="controls">
+      <input type="text" id="tel" name="tel" value="<?=$user['tel']?>">
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label">状态</label>
+    <div class="controls">
+      <label class="radio inline">
+        <input type="radio" name="status" value="1" <?php if($user['status'] == 1) echo 'checked';?>>
+        开启
+      </label>
+      <label class="radio inline">
+        <input type="radio" name="status" value="0" <?php if($user['status'] == 0) echo 'checked';?>>
+        关闭
+      </label>
+    </div>
+  </div>
+</form>
